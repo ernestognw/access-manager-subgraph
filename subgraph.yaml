@@ -1,0 +1,57 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: AccessManager
+    network: goerli
+    source:
+      address: "0x4ee69a1703b717cb46cd12c71c6fe225f646ba1e"
+      abi: AccessManager
+      startBlock: 9816668
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - OperationCanceled
+        - OperationExecuted
+        - OperationScheduled
+        - RoleAdminChanged
+        - RoleGrantDelayChanged
+        - RoleGranted
+        - RoleGuardianChanged
+        - RoleLabel
+        - RoleRevoked
+        - TargetAdminDelayUpdated
+        - TargetClosed
+        - TargetFunctionRoleUpdated
+      abis:
+        - name: AccessManager
+          file: ./abis/AccessManager.json
+      eventHandlers:
+        - event: OperationCanceled(indexed bytes32,indexed uint32)
+          handler: handleOperationCanceled
+        - event: OperationExecuted(indexed bytes32,indexed uint32)
+          handler: handleOperationExecuted
+        - event: OperationScheduled(indexed bytes32,indexed uint32,uint48,address,address,bytes)
+          handler: handleOperationScheduled
+        - event: RoleAdminChanged(indexed uint64,indexed uint64)
+          handler: handleRoleAdminChanged
+        - event: RoleGrantDelayChanged(indexed uint64,uint32,uint48)
+          handler: handleRoleGrantDelayChanged
+        - event: RoleGranted(indexed uint64,indexed address,uint32,uint48,bool)
+          handler: handleRoleGranted
+        - event: RoleGuardianChanged(indexed uint64,indexed uint64)
+          handler: handleRoleGuardianChanged
+        - event: RoleLabel(indexed uint64,string)
+          handler: handleRoleLabel
+        - event: RoleRevoked(indexed uint64,indexed address)
+          handler: handleRoleRevoked
+        - event: TargetAdminDelayUpdated(indexed address,uint32,uint48)
+          handler: handleTargetAdminDelayUpdated
+        - event: TargetClosed(indexed address,bool)
+          handler: handleTargetClosed
+        - event: TargetFunctionRoleUpdated(indexed address,bytes4,indexed uint64)
+          handler: handleTargetFunctionRoleUpdated
+      file: ./src/access-manager.ts
