@@ -1,7 +1,9 @@
 {
   "goerli": {
     "AccessManager": {
-      "address": "0x4ee69a1703b717cb46cd12c71c6fe225f646ba1e",
+      "startBlock": 9816668
+    },
+    "AccessManaged": {
       "startBlock": 9816668
     }
   }

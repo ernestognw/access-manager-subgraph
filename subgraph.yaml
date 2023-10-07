@@ -6,9 +6,8 @@ dataSources:
     name: AccessManager
     network: goerli
     source:
-      address: "0x4ee69a1703b717cb46cd12c71c6fe225f646ba1e"
       abi: AccessManager
-      startBlock: 9816668
+      startBlock: 9816668 # First AccessManager
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -55,3 +54,22 @@ dataSources:
         - event: TargetFunctionRoleUpdated(indexed address,bytes4,indexed uint64)
           handler: handleTargetFunctionRoleUpdated
       file: ./src/access-manager.ts
+  - kind: ethereum
+    name: AccessManaged
+    network: goerli
+    source:
+      abi: AccessManaged
+      startBlock: 9816668 # First AccessManaged
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AuthorityUpdated
+      abis:
+        - name: AccessManaged
+          file: ./abis/AccessManaged.json
+      eventHandlers:
+        - event: AuthorityUpdated(address)
+          handler: handleAuthorityUpdated
+      file: ./src/access-managed.ts

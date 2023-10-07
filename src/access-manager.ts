@@ -10,8 +10,8 @@ import {
   RoleRevoked as RoleRevokedEvent,
   TargetAdminDelayUpdated as TargetAdminDelayUpdatedEvent,
   TargetClosed as TargetClosedEvent,
-  TargetFunctionRoleUpdated as TargetFunctionRoleUpdatedEvent
-} from "../generated/AccessManager/AccessManager"
+  TargetFunctionRoleUpdated as TargetFunctionRoleUpdatedEvent,
+} from "../generated/AccessManager/AccessManager";
 import {
   OperationCanceled,
   OperationExecuted,
@@ -24,67 +24,67 @@ import {
   RoleRevoked,
   TargetAdminDelayUpdated,
   TargetClosed,
-  TargetFunctionRoleUpdated
-} from "../generated/schema"
+  TargetFunctionRoleUpdated,
+} from "../generated/schema";
 
 export function handleOperationCanceled(event: OperationCanceledEvent): void {
   let entity = new OperationCanceled(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.operationId = event.params.operationId
-  entity.nonce = event.params.nonce
+  );
+  entity.operationId = event.params.operationId;
+  entity.nonce = event.params.nonce;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleOperationExecuted(event: OperationExecutedEvent): void {
   let entity = new OperationExecuted(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.operationId = event.params.operationId
-  entity.nonce = event.params.nonce
+  );
+  entity.operationId = event.params.operationId;
+  entity.nonce = event.params.nonce;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleOperationScheduled(event: OperationScheduledEvent): void {
   let entity = new OperationScheduled(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.operationId = event.params.operationId
-  entity.nonce = event.params.nonce
-  entity.schedule = event.params.schedule
-  entity.caller = event.params.caller
-  entity.target = event.params.target
-  entity.data = event.params.data
+  );
+  entity.operationId = event.params.operationId;
+  entity.nonce = event.params.nonce;
+  entity.schedule = event.params.schedule;
+  entity.caller = event.params.caller;
+  entity.target = event.params.target;
+  entity.data = event.params.data;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleRoleAdminChanged(event: RoleAdminChangedEvent): void {
   let entity = new RoleAdminChanged(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roleId = event.params.roleId
-  entity.admin = event.params.admin
+  );
+  entity.roleId = event.params.roleId;
+  entity.admin = event.params.admin;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleRoleGrantDelayChanged(
@@ -92,33 +92,33 @@ export function handleRoleGrantDelayChanged(
 ): void {
   let entity = new RoleGrantDelayChanged(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roleId = event.params.roleId
-  entity.delay = event.params.delay
-  entity.since = event.params.since
+  );
+  entity.roleId = event.params.roleId;
+  entity.delay = event.params.delay;
+  entity.since = event.params.since;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleRoleGranted(event: RoleGrantedEvent): void {
   let entity = new RoleGranted(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roleId = event.params.roleId
-  entity.account = event.params.account
-  entity.delay = event.params.delay
-  entity.since = event.params.since
-  entity.newMember = event.params.newMember
+  );
+  entity.roleId = event.params.roleId;
+  entity.account = event.params.account;
+  entity.delay = event.params.delay;
+  entity.since = event.params.since;
+  entity.newMember = event.params.newMember;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleRoleGuardianChanged(
@@ -126,43 +126,43 @@ export function handleRoleGuardianChanged(
 ): void {
   let entity = new RoleGuardianChanged(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roleId = event.params.roleId
-  entity.guardian = event.params.guardian
+  );
+  entity.roleId = event.params.roleId;
+  entity.guardian = event.params.guardian;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleRoleLabel(event: RoleLabelEvent): void {
   let entity = new RoleLabel(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roleId = event.params.roleId
-  entity.label = event.params.label
+  );
+  entity.roleId = event.params.roleId;
+  entity.label = event.params.label;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleRoleRevoked(event: RoleRevokedEvent): void {
   let entity = new RoleRevoked(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.roleId = event.params.roleId
-  entity.account = event.params.account
+  );
+  entity.roleId = event.params.roleId;
+  entity.account = event.params.account;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleTargetAdminDelayUpdated(
@@ -170,30 +170,30 @@ export function handleTargetAdminDelayUpdated(
 ): void {
   let entity = new TargetAdminDelayUpdated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.target = event.params.target
-  entity.delay = event.params.delay
-  entity.since = event.params.since
+  );
+  entity.target = event.params.target;
+  entity.delay = event.params.delay;
+  entity.since = event.params.since;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleTargetClosed(event: TargetClosedEvent): void {
   let entity = new TargetClosed(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.target = event.params.target
-  entity.closed = event.params.closed
+  );
+  entity.target = event.params.target;
+  entity.closed = event.params.closed;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }
 
 export function handleTargetFunctionRoleUpdated(
@@ -201,14 +201,14 @@ export function handleTargetFunctionRoleUpdated(
 ): void {
   let entity = new TargetFunctionRoleUpdated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.target = event.params.target
-  entity.selector = event.params.selector
-  entity.roleId = event.params.roleId
+  );
+  entity.target = event.params.target;
+  entity.selector = event.params.selector;
+  entity.roleId = event.params.roleId;
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
-  entity.save()
+  entity.save();
 }

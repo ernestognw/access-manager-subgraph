@@ -1,117 +1,296 @@
-type OperationCanceled @entity(immutable: true) {
+type Account @entity {
   id: Bytes!
-  operationId: Bytes! # bytes32
-  nonce: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  # Parsing
+  asAccessManager: AccessManager
+  asAccessManaged: AccessManaged
+  asAccessManagerRoleMember: AccessManagerRoleMember
+  # Relationships
+  membership: [AccessManagerRoleMember!]! @derivedFrom(field: "asAccount")
+  operationCaller: [AccessManagedOperation!]! @derivedFrom(field: "caller")
+  operationTarget: [AccessManagedOperation!]! @derivedFrom(field: "target")
+  # Events
+  operationExecutedSender: [OperationExecuted!]! @derivedFrom(field: "sender")
+  operationScheduledCaller: [OperationScheduled!]! @derivedFrom(field: "caller")
+  operationScheduledTarget: [OperationScheduled!]! @derivedFrom(field: "target")
+  operationScheduledSender: [OperationScheduled!]! @derivedFrom(field: "sender")
+  roleGranted: [RoleGranted!]! @derivedFrom(field: "account")
+  roleGrantedSender: [RoleGranted!]! @derivedFrom(field: "sender")
+  roleAdminChangedSender: [RoleAdminChanged!]! @derivedFrom(field: "sender")
+  roleLabelSender: [RoleLabel!]! @derivedFrom(field: "sender")
+  roleRevoked: [RoleRevoked!]! @derivedFrom(field: "account")
+  roleRevokedSender: [RoleRevoked!]! @derivedFrom(field: "sender")
+  targetAdminDelayUpdatedSender: [TargetAdminDelayUpdated!]!
+    @derivedFrom(field: "sender")
+  targetClosed: [TargetClosed!]! @derivedFrom(field: "target")
+  targetClosedSender: [TargetClosed!]! @derivedFrom(field: "sender")
+  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
+    @derivedFrom(field: "target")
+  targetFunctionRoleUpdatedSender: [TargetFunctionRoleUpdated!]!
+    @derivedFrom(field: "sender")
+  authorityUpdated: [AuthorityUpdated!]! @derivedFrom(field: "authority")
+  authorityUpdatedSender: [AuthorityUpdated!]! @derivedFrom(field: "sender")
+  # Misc
+  events: [Event!]! @derivedFrom(field: "emitter")
+  transactions: [Transaction!]! @derivedFrom(field: "sender")
 }
 
-type OperationExecuted @entity(immutable: true) {
+type AccessManager @entity(immutable: true) {
   id: Bytes!
-  operationId: Bytes! # bytes32
-  nonce: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  # Parsing
+  asAccount: Account!
+  # Relationships
+  roles: [AccessManagerRole!]! @derivedFrom(field: "manager")
+  managed: [AccessManaged!]! @derivedFrom(field: "manager")
+  functions: [AccessManagedFunction!]! @derivedFrom(field: "manager")
+  operations: [AccessManagedOperation!]! @derivedFrom(field: "manager")
 }
 
-type OperationScheduled @entity(immutable: true) {
+type AccessManaged @entity {
   id: Bytes!
-  operationId: Bytes! # bytes32
+  adminDelay: DelayedBigInt! # uint32
+  closed: Boolean! # bool
+  # Parsing
+  asAccount: Account!
+  # Relationships
+  manager: AccessManager!
+}
+
+type AccessManagerRoleMember @entity(immutable: true) {
+  id: Bytes!
+  # Parsing
+  asAccount: Account!
+  # Relationships
+  role: AccessManagerRole!
+  since: BigInt! # uint48
+  delay: DelayedBigInt! # uint32
+}
+
+type Function @entity(immutable: true) {
+  id: Bytes!
+  selector: Bytes! # bytes4
+  # Relationships
+  functionOf: [AccessManagedFunction]! @derivedFrom(field: "function")
+}
+
+type AccessManagedFunction @entity {
+  id: Bytes!
+  manager: AccessManager!
+  # Relationships
+  target: Account!
+  function: Function!
+  role: AccessManagerRole!
+  # Events
+  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
+    @derivedFrom(field: "selector")
+}
+
+type Operation @entity(immutable: true) {
+  id: Bytes!
+  # Relationships
+  operationOf: [AccessManagedOperation]! @derivedFrom(field: "operation")
+}
+
+type DelayedBigInt @entity {
+  id: Bytes!
+  oldValue: BigInt!
+  value: BigInt!
+  since: BigInt! # uint48
+}
+
+type AccessManagedOperation @entity {
+  id: Bytes!
   nonce: BigInt! # uint32
   schedule: BigInt! # uint48
-  caller: Bytes! # address
-  target: Bytes! # address
   data: Bytes! # bytes
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  # Relationships
+  operation: Operation!
+  manager: AccessManager!
+  caller: Account!
+  target: Account!
+  # Events
+  operationCanceled: [OperationCanceled!]! @derivedFrom(field: "operation")
+  operationExecuted: [OperationExecuted!]! @derivedFrom(field: "operation")
+  operationScheduled: [OperationScheduled!]! @derivedFrom(field: "operation")
 }
 
-type RoleAdminChanged @entity(immutable: true) {
+type AccessManagerRole @entity {
   id: Bytes!
-  roleId: BigInt! # uint64
-  admin: BigInt! # uint64
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  manager: AccessManager!
+  label: String
+  delay: DelayedBigInt! # uint32
+  # Relationships
+  admin: AccessManagerRole!
+  guardian: AccessManagerRole!
+  adminOf: [AccessManagerRole!]! @derivedFrom(field: "admin")
+  guardianOf: [AccessManagerRole!]! @derivedFrom(field: "guardian")
+  members: [AccessManagerRoleMember!]! @derivedFrom(field: "role")
+  functions: [AccessManagedFunction!]! @derivedFrom(field: "role")
+  # Events
+  roleAdminChangedRole: [RoleAdminChanged!]! @derivedFrom(field: "role")
+  roleAdminChangedAdmin: [RoleAdminChanged!]! @derivedFrom(field: "admin")
+  roleGrantDelayChanged: [RoleGrantDelayChanged!]! @derivedFrom(field: "role")
+  roleGranted: [RoleGranted!]! @derivedFrom(field: "role")
+  roleGuardianChangedRole: [RoleGuardianChanged!]! @derivedFrom(field: "role")
+  roleGuardianChangedGuardian: [RoleGuardianChanged!]!
+    @derivedFrom(field: "guardian")
+  roleLabel: [RoleLabel!]! @derivedFrom(field: "role")
+  roleRevoked: [RoleRevoked!]! @derivedFrom(field: "role")
+  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
+    @derivedFrom(field: "role")
 }
 
-type RoleGrantDelayChanged @entity(immutable: true) {
+type OperationCanceled implements Event @entity(immutable: true) {
   id: Bytes!
-  roleId: BigInt! # uint64
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  operation: AccessManagedOperation!
+  nonce: BigInt! # uint32
+  sender: Account!
+}
+
+type OperationExecuted implements Event @entity(immutable: true) {
+  id: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  operation: AccessManagedOperation!
+  nonce: BigInt! # uint32
+  sender: Account!
+}
+
+type OperationScheduled implements Event @entity(immutable: true) {
+  id: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  operation: AccessManagedOperation!
+  nonce: BigInt! # uint32
+  schedule: BigInt! # uint48
+  caller: Account!
+  target: Account!
+  data: Bytes! # bytes
+  sender: Account!
+}
+
+type RoleAdminChanged implements Event @entity(immutable: true) {
+  id: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  role: AccessManagerRole!
+  admin: AccessManagerRole!
+  sender: Account!
+}
+
+type RoleGrantDelayChanged implements Event @entity(immutable: true) {
+  id: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  role: AccessManagerRole!
   delay: BigInt! # uint32
   since: BigInt! # uint48
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  sender: Account!
 }
 
-type RoleGranted @entity(immutable: true) {
+type RoleGranted implements Event @entity(immutable: true) {
   id: Bytes!
-  roleId: BigInt! # uint64
-  account: Bytes! # address
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  role: AccessManagerRole!
+  account: Account!
   delay: BigInt! # uint32
   since: BigInt! # uint48
   newMember: Boolean! # bool
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  sender: Account!
 }
 
-type RoleGuardianChanged @entity(immutable: true) {
+type RoleGuardianChanged implements Event @entity(immutable: true) {
   id: Bytes!
-  roleId: BigInt! # uint64
-  guardian: BigInt! # uint64
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  role: AccessManagerRole!
+  guardian: AccessManagerRole!
+  sender: Account!
 }
 
-type RoleLabel @entity(immutable: true) {
+type RoleLabel implements Event @entity(immutable: true) {
   id: Bytes!
-  roleId: BigInt! # uint64
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  role: AccessManagerRole!
   label: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  sender: Account!
 }
 
-type RoleRevoked @entity(immutable: true) {
+type RoleRevoked implements Event @entity(immutable: true) {
   id: Bytes!
-  roleId: BigInt! # uint64
-  account: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  role: AccessManagerRole!
+  account: Account!
+  sender: Account!
 }
 
-type TargetAdminDelayUpdated @entity(immutable: true) {
+type TargetAdminDelayUpdated implements Event @entity(immutable: true) {
   id: Bytes!
-  target: Bytes! # address
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  target: Account!
   delay: BigInt! # uint32
   since: BigInt! # uint48
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  sender: Account!
 }
 
-type TargetClosed @entity(immutable: true) {
+type TargetClosed implements Event @entity(immutable: true) {
   id: Bytes!
-  target: Bytes! # address
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  target: Account!
   closed: Boolean! # bool
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  sender: Account!
 }
 
-type TargetFunctionRoleUpdated @entity(immutable: true) {
+type TargetFunctionRoleUpdated implements Event @entity(immutable: true) {
   id: Bytes!
-  target: Bytes! # address
-  selector: Bytes! # bytes4
-  roleId: BigInt! # uint64
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+  target: Account!
+  selector: AccessManagedFunction!
+  role: AccessManagerRole!
+  sender: Account!
+}
+
+type AuthorityUpdated implements Event @entity(immutable: true) {
+  id: Bytes!
+  transaction: Transaction!
+  emitter: Account!
+  authority: Account!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  sender: Account!
+}
+
+interface Event {
+  id: ID!
+  transaction: Transaction!
+  emitter: Account!
+  timestamp: BigInt!
+}
+
+type Transaction implements Event @entity(immutable: true) {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  events: [Event!]! @derivedFrom(field: "transaction")
+  sender: Account!
 }
