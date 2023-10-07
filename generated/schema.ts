@@ -590,8 +590,8 @@ export class AccessManagerRoleMember extends Entity {
     this.set("since", Value.fromBigInt(value));
   }
 
-  get delay(): Bytes {
-    let value = this.get("delay");
+  get executionDelay(): Bytes {
+    let value = this.get("executionDelay");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -599,12 +599,12 @@ export class AccessManagerRoleMember extends Entity {
     }
   }
 
-  set delay(value: Bytes) {
-    this.set("delay", Value.fromBytes(value));
+  set executionDelay(value: Bytes) {
+    this.set("executionDelay", Value.fromBytes(value));
   }
 }
 
-export class Function extends Entity {
+export class Selector extends Entity {
   constructor(id: Bytes) {
     super();
     this.set("id", Value.fromBytes(id));
@@ -612,24 +612,24 @@ export class Function extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save Function entity without an ID");
+    assert(id != null, "Cannot save Selector entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.BYTES,
-        `Entities of type Function must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type Selector must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("Function", id.toBytes().toHexString(), this);
+      store.set("Selector", id.toBytes().toHexString(), this);
     }
   }
 
-  static loadInBlock(id: Bytes): Function | null {
-    return changetype<Function | null>(
-      store.get_in_block("Function", id.toHexString())
+  static loadInBlock(id: Bytes): Selector | null {
+    return changetype<Selector | null>(
+      store.get_in_block("Selector", id.toHexString())
     );
   }
 
-  static load(id: Bytes): Function | null {
-    return changetype<Function | null>(store.get("Function", id.toHexString()));
+  static load(id: Bytes): Selector | null {
+    return changetype<Selector | null>(store.get("Selector", id.toHexString()));
   }
 
   get id(): Bytes {
@@ -645,22 +645,9 @@ export class Function extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get selector(): Bytes {
-    let value = this.get("selector");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set selector(value: Bytes) {
-    this.set("selector", Value.fromBytes(value));
-  }
-
   get functionOf(): AccessManagedFunctionLoader {
     return new AccessManagedFunctionLoader(
-      "Function",
+      "Selector",
       this.get("id")!
         .toBytes()
         .toHexString(),
@@ -741,8 +728,8 @@ export class AccessManagedFunction extends Entity {
     this.set("target", Value.fromBytes(value));
   }
 
-  get function(): Bytes {
-    let value = this.get("function");
+  get selector(): Bytes {
+    let value = this.get("selector");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -750,8 +737,8 @@ export class AccessManagedFunction extends Entity {
     }
   }
 
-  set function(value: Bytes) {
-    this.set("function", Value.fromBytes(value));
+  set selector(value: Bytes) {
+    this.set("selector", Value.fromBytes(value));
   }
 
   get role(): Bytes {
@@ -1126,6 +1113,19 @@ export class AccessManagerRole extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
+  get roleId(): BigInt {
+    let value = this.get("roleId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set roleId(value: BigInt) {
+    this.set("roleId", Value.fromBigInt(value));
+  }
+
   get manager(): Bytes {
     let value = this.get("manager");
     if (!value || value.kind == ValueKind.NULL) {
@@ -1156,8 +1156,8 @@ export class AccessManagerRole extends Entity {
     }
   }
 
-  get delay(): Bytes {
-    let value = this.get("delay");
+  get grantDelay(): Bytes {
+    let value = this.get("grantDelay");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -1165,8 +1165,8 @@ export class AccessManagerRole extends Entity {
     }
   }
 
-  set delay(value: Bytes) {
-    this.set("delay", Value.fromBytes(value));
+  set grantDelay(value: Bytes) {
+    this.set("grantDelay", Value.fromBytes(value));
   }
 
   get admin(): Bytes {
