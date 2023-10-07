@@ -1,36 +1,26 @@
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
-  Account,
   AccessManager,
   AccessManaged,
-  DelayedBigInt,
   AccessManagerRoleMember,
   AccessManagerRole,
-  Selector,
   AccessManagedFunction,
-  Operation,
   AccessManagedOperation,
 } from "../../generated/schema";
+import {
+  fetchAccount,
+  fetchDelayedBigInt,
+  fetchOperation,
+  fetchSelector,
+} from "./misc";
 
-enum DelayType {
-  ADMIN,
-  GRANT,
-  EXECUTION,
+export enum AccessManagerOperationStatus {
+  SCHEDULED,
+  EXECUTED,
+  CANCELED,
 }
 
-const PUBLIC_ROLE = BigInt.fromString("18446744073709551615"); // type(uint64).max
 const ADMIN_ROLE = BigInt.fromString("0");
-
-export function fetchAccount(address: Address): Account {
-  let account = Account.load(address);
-
-  if (account == null) {
-    account = new Account(address);
-    account.save();
-  }
-
-  return account;
-}
 
 export function fetchAccessManager(address: Address): AccessManager {
   let accessManager = AccessManager.load(address);
@@ -48,59 +38,14 @@ export function fetchAccessManager(address: Address): AccessManager {
   return accessManager;
 }
 
-export function fetchDelayedBigInt(
-  type: DelayType.ADMIN,
-  target: Address,
-  roleId?: BigInt,
-  member?: Address
-): DelayedBigInt;
-export function fetchDelayedBigInt(
-  type: DelayType.GRANT,
-  target: Address,
-  roleId: BigInt,
-  member?: Address
-): DelayedBigInt;
-export function fetchDelayedBigInt(
-  type: DelayType.EXECUTION,
-  target: Address,
-  roleId: BigInt,
-  member: Address
-): DelayedBigInt;
-export function fetchDelayedBigInt(
-  type: DelayType,
-  target: Address,
-  roleId?: BigInt,
-  member?: Address
-) {
-  const id = target.concat(Bytes.fromUTF8("/")).concatI32(type);
-
-  if (roleId != undefined) {
-    id.concatI32(roleId.toI32());
-  }
-
-  if (member != undefined) {
-    id.concat(member);
-  }
-
-  let delay = DelayedBigInt.load(id);
-
-  if (delay == null) {
-    delay = new DelayedBigInt(id);
-    delay.oldValue = BigInt.fromI32(0);
-    delay.value = BigInt.fromI32(0);
-    delay.since = BigInt.fromI32(0);
-    delay.save();
-  }
-
-  return delay;
-}
-
 export function fetchAccessManaged(address: Address): AccessManaged {
   let accessManaged = AccessManaged.load(address);
 
   if (accessManaged == null) {
     accessManaged = new AccessManaged(address);
-    accessManaged.adminDelay = fetchDelayedBigInt(DelayType.ADMIN, address).id;
+    accessManaged.adminDelay = fetchDelayedBigInt(
+      "ADMIN".concat("/").concat(address.toString())
+    ).id;
     accessManaged.closed = false;
     accessManaged.asAccount = address;
     accessManaged.save();
@@ -117,14 +62,23 @@ export function fetchAccessManagerRole(
   manager: Address,
   roleId: BigInt
 ): AccessManagerRole {
-  const id = manager.concat(Bytes.fromBigInt(roleId));
+  const id = manager
+    .toString()
+    .concat("/")
+    .concat(roleId.toString());
   let role = AccessManagerRole.load(id);
 
   if (role == null) {
     role = new AccessManagerRole(id);
     role.roleId = roleId;
     role.manager = fetchAccessManager(manager).asAccount;
-    role.grantDelay = fetchDelayedBigInt(DelayType.GRANT, manager, roleId).id;
+    role.grantDelay = fetchDelayedBigInt(
+      "GRANT"
+        .concat("/")
+        .concat(manager.toString())
+        .concat("/")
+        .concat(roleId.toString())
+    ).id;
     role.admin = fetchAccessManagerRole(manager, ADMIN_ROLE).id;
     role.guardian = fetchAccessManagerRole(manager, ADMIN_ROLE).id;
     role.save();
@@ -139,32 +93,34 @@ export function fetchAccessManagerRoleMember(
   roleId: BigInt
 ): AccessManagerRoleMember {
   const role = fetchAccessManagerRole(manager, roleId);
-  const id = address.concat(role.id);
+  const id = address
+    .toString()
+    .concat("/")
+    .concat(role.id);
   let accessManagedRoleMember = AccessManagerRoleMember.load(id);
 
   if (accessManagedRoleMember == null) {
     accessManagedRoleMember = new AccessManagerRoleMember(id);
     accessManagedRoleMember.asAccount = address;
     accessManagedRoleMember.role = role.id;
+    accessManagedRoleMember.since = BigInt.fromI32(0);
+    accessManagedRoleMember.executionDelay = fetchDelayedBigInt(
+      "GRANT"
+        .concat("/")
+        .concat(manager.toString())
+        .concat("/")
+        .concat(roleId.toString())
+        .concat("/")
+        .concat(address.toString())
+    ).id;
     accessManagedRoleMember.save();
 
     let account = fetchAccount(address);
-    account.asAccessManaged = address;
+    account.asAccessManagerRoleMember = accessManagedRoleMember.id;
     account.save();
   }
 
   return accessManagedRoleMember;
-}
-
-export function fetchSelector(id: Bytes): Selector {
-  let selector = Selector.load(id);
-
-  if (selector == null) {
-    selector = new Selector(id);
-    selector.save();
-  }
-
-  return selector;
 }
 
 export function fetchAccessManagedFunction(
@@ -172,7 +128,12 @@ export function fetchAccessManagedFunction(
   target: Address,
   selector: Bytes
 ): AccessManagedFunction {
-  const id = target.concat(selector);
+  const id = manager
+    .toString()
+    .concat("/")
+    .concat(target.toString())
+    .concat("/")
+    .concat(selector.toString());
   let accessManagedFunction = AccessManagedFunction.load(id);
 
   if (accessManagedFunction == null) {
@@ -187,29 +148,25 @@ export function fetchAccessManagedFunction(
   return accessManagedFunction;
 }
 
-export function fetchOperation(operationId: Bytes): Operation {
-  let operation = Operation.load(operationId);
-
-  if (operation == null) {
-    operation = new Operation(operationId);
-    operation.save();
-  }
-
-  return operation;
-}
-
 export function fetchAccessManagedOperation(
   operationId: Bytes,
-  manager: Address
+  manager: Address,
+  nonce: BigInt
 ): AccessManagedOperation {
-  const id = operationId.concat(manager);
+  const id = operationId
+    .toString()
+    .concat("/")
+    .concat(manager.toString())
+    .concat("/")
+    .concat(nonce.toString());
   let operation = AccessManagedOperation.load(id);
 
   if (operation == null) {
     operation = new AccessManagedOperation(id);
-    operation.nonce = BigInt.fromString("0");
+    operation.nonce = nonce;
     operation.schedule = BigInt.fromString("0");
     operation.data = Bytes.fromI32(0);
+    operation.status = AccessManagerOperationStatus.SCHEDULED.toString();
     operation.operation = fetchOperation(operationId).id;
     operation.manager = fetchAccessManager(manager).id;
     operation.caller = fetchAccount(manager).id;

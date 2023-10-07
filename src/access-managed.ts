@@ -1,15 +1,10 @@
 import { AuthorityUpdated as AuthorityUpdatedEvent } from "../generated/AccessManaged/AccessManaged";
-import { AuthorityUpdated } from "../generated/schema";
+import { fetchAccessManaged, fetchAccessManager } from "./fetch/access-manager";
+import { createAuthorityUpdated } from "./fetch/events";
 
 export function handleAuthorityUpdated(event: AuthorityUpdatedEvent): void {
-  let entity = new AuthorityUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.authority = event.params.authority;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  createAuthorityUpdated(event);
+  const accessManaged = fetchAccessManaged(event.address);
+  accessManaged.manager = fetchAccessManager(event.params.authority).id;
+  accessManaged.save();
 }

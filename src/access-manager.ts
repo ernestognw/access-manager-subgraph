@@ -1,3 +1,4 @@
+import { BigInt, store } from "@graphprotocol/graph-ts";
 import {
   OperationCanceled as OperationCanceledEvent,
   OperationExecuted as OperationExecutedEvent,
@@ -13,202 +14,157 @@ import {
   TargetFunctionRoleUpdated as TargetFunctionRoleUpdatedEvent,
 } from "../generated/AccessManager/AccessManager";
 import {
-  OperationCanceled,
-  OperationExecuted,
-  OperationScheduled,
-  RoleAdminChanged,
-  RoleGrantDelayChanged,
-  RoleGranted,
-  RoleGuardianChanged,
-  RoleLabel,
-  RoleRevoked,
-  TargetAdminDelayUpdated,
-  TargetClosed,
-  TargetFunctionRoleUpdated,
-} from "../generated/schema";
+  AccessManagerOperationStatus,
+  fetchAccessManaged,
+  fetchAccessManagedFunction,
+  fetchAccessManagedOperation,
+  fetchAccessManagerRole,
+  fetchAccessManagerRoleMember,
+} from "./fetch/access-manager";
+import {
+  createOperationCanceled,
+  createOperationExecuted,
+  createOperationScheduled,
+  createRoleAdminChanged,
+  createRoleGrantDelayChanged,
+  createRoleGranted,
+  createRoleGuardianChanged,
+  createRoleLabel,
+  createRoleRevoked,
+  createTargetAdminDelayUpdated,
+  createTargetClosed,
+  createTargetFunctionRoleUpdated,
+} from "./fetch/events";
+import { updateDelayedBigInt } from "./fetch/misc";
 
 export function handleOperationCanceled(event: OperationCanceledEvent): void {
-  let entity = new OperationCanceled(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const operationCanceled = createOperationCanceled(event);
+  const accessManagedOperation = fetchAccessManagedOperation(
+    event.params.operationId,
+    event.address,
+    operationCanceled.nonce
   );
-  entity.operationId = event.params.operationId;
-  entity.nonce = event.params.nonce;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  accessManagedOperation.status = AccessManagerOperationStatus.CANCELED.toString();
+  accessManagedOperation.save();
 }
 
 export function handleOperationExecuted(event: OperationExecutedEvent): void {
-  let entity = new OperationExecuted(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const operationExecuted = createOperationExecuted(event);
+  const accessManagedOperation = fetchAccessManagedOperation(
+    event.params.operationId,
+    event.address,
+    operationExecuted.nonce
   );
-  entity.operationId = event.params.operationId;
-  entity.nonce = event.params.nonce;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  accessManagedOperation.status = AccessManagerOperationStatus.EXECUTED.toString();
+  accessManagedOperation.save();
 }
 
 export function handleOperationScheduled(event: OperationScheduledEvent): void {
-  let entity = new OperationScheduled(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const operationScheduled = createOperationScheduled(event);
+  const accessManagedOperation = fetchAccessManagedOperation(
+    event.params.operationId,
+    event.address,
+    operationScheduled.nonce
   );
-  entity.operationId = event.params.operationId;
-  entity.nonce = event.params.nonce;
-  entity.schedule = event.params.schedule;
-  entity.caller = event.params.caller;
-  entity.target = event.params.target;
-  entity.data = event.params.data;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  accessManagedOperation.schedule = operationScheduled.schedule;
+  accessManagedOperation.data = operationScheduled.data;
+  accessManagedOperation.save();
 }
 
 export function handleRoleAdminChanged(event: RoleAdminChangedEvent): void {
-  let entity = new RoleAdminChanged(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.roleId = event.params.roleId;
-  entity.admin = event.params.admin;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  const roleAdminChanged = createRoleAdminChanged(event);
+  const role = fetchAccessManagerRole(event.address, event.params.roleId);
+  role.admin = roleAdminChanged.admin;
+  role.save();
 }
 
 export function handleRoleGrantDelayChanged(
   event: RoleGrantDelayChangedEvent
 ): void {
-  let entity = new RoleGrantDelayChanged(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const roleGrantDelayChanged = createRoleGrantDelayChanged(event);
+  const role = fetchAccessManagerRole(event.address, event.params.roleId);
+  updateDelayedBigInt(
+    role.grantDelay,
+    event.block.timestamp,
+    roleGrantDelayChanged.delay,
+    roleGrantDelayChanged.since
   );
-  entity.roleId = event.params.roleId;
-  entity.delay = event.params.delay;
-  entity.since = event.params.since;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  role.save();
 }
 
 export function handleRoleGranted(event: RoleGrantedEvent): void {
-  let entity = new RoleGranted(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const roleGranted = createRoleGranted(event);
+  const roleMember = fetchAccessManagerRoleMember(
+    event.params.account,
+    event.address,
+    event.params.roleId
   );
-  entity.roleId = event.params.roleId;
-  entity.account = event.params.account;
-  entity.delay = event.params.delay;
-  entity.since = event.params.since;
-  entity.newMember = event.params.newMember;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  if (roleGranted.newMember) {
+    roleMember.since = roleGranted.since;
+  }
+  updateDelayedBigInt(
+    roleMember.executionDelay,
+    event.block.timestamp,
+    roleGranted.delay,
+    roleGranted.since
+  );
+  roleMember.save();
 }
 
 export function handleRoleGuardianChanged(
   event: RoleGuardianChangedEvent
 ): void {
-  let entity = new RoleGuardianChanged(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.roleId = event.params.roleId;
-  entity.guardian = event.params.guardian;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  const roleGuardianChanged = createRoleGuardianChanged(event);
+  const role = fetchAccessManagerRole(event.address, event.params.roleId);
+  role.guardian = roleGuardianChanged.guardian;
+  role.save();
 }
 
 export function handleRoleLabel(event: RoleLabelEvent): void {
-  let entity = new RoleLabel(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.roleId = event.params.roleId;
-  entity.label = event.params.label;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  const roleLabel = createRoleLabel(event);
+  const role = fetchAccessManagerRole(event.address, event.params.roleId);
+  role.label = roleLabel.label;
+  role.save();
 }
 
 export function handleRoleRevoked(event: RoleRevokedEvent): void {
-  let entity = new RoleRevoked(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  createRoleRevoked(event);
+  const roleMember = fetchAccessManagerRoleMember(
+    event.params.account,
+    event.address,
+    event.params.roleId
   );
-  entity.roleId = event.params.roleId;
-  entity.account = event.params.account;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  store.remove("AccessManagerRoleMember", roleMember.id);
 }
 
 export function handleTargetAdminDelayUpdated(
   event: TargetAdminDelayUpdatedEvent
 ): void {
-  let entity = new TargetAdminDelayUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const targetAdminDelayUpdated = createTargetAdminDelayUpdated(event);
+  const accessManaged = fetchAccessManaged(event.params.target);
+  updateDelayedBigInt(
+    accessManaged.adminDelay,
+    event.block.timestamp,
+    targetAdminDelayUpdated.delay,
+    targetAdminDelayUpdated.since
   );
-  entity.target = event.params.target;
-  entity.delay = event.params.delay;
-  entity.since = event.params.since;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
 }
 
 export function handleTargetClosed(event: TargetClosedEvent): void {
-  let entity = new TargetClosed(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.target = event.params.target;
-  entity.closed = event.params.closed;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  const targetClosed = createTargetClosed(event);
+  const accessManaged = fetchAccessManaged(event.params.target);
+  accessManaged.closed = targetClosed.closed;
+  accessManaged.save();
 }
 
 export function handleTargetFunctionRoleUpdated(
   event: TargetFunctionRoleUpdatedEvent
 ): void {
-  let entity = new TargetFunctionRoleUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  const targetFunctionRoleUpdated = createTargetFunctionRoleUpdated(event);
+  const accessManagedFunction = fetchAccessManagedFunction(
+    event.address,
+    event.params.target,
+    event.params.selector
   );
-  entity.target = event.params.target;
-  entity.selector = event.params.selector;
-  entity.roleId = event.params.roleId;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
+  accessManagedFunction.role = targetFunctionRoleUpdated.role;
 }

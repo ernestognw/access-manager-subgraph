@@ -86,29 +86,27 @@ export class Account extends Entity {
     }
   }
 
-  get asAccessManagerRoleMember(): Bytes | null {
+  get asAccessManagerRoleMember(): string | null {
     let value = this.get("asAccessManagerRoleMember");
     if (!value || value.kind == ValueKind.NULL) {
       return null;
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set asAccessManagerRoleMember(value: Bytes | null) {
+  set asAccessManagerRoleMember(value: string | null) {
     if (!value) {
       this.unset("asAccessManagerRoleMember");
     } else {
-      this.set("asAccessManagerRoleMember", Value.fromBytes(<Bytes>value));
+      this.set("asAccessManagerRoleMember", Value.fromString(<string>value));
     }
   }
 
   get membership(): AccessManagerRoleMemberLoader {
     return new AccessManagerRoleMemberLoader(
       "Account",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "membership"
     );
   }
@@ -116,9 +114,7 @@ export class Account extends Entity {
   get operationCaller(): AccessManagedOperationLoader {
     return new AccessManagedOperationLoader(
       "Account",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "operationCaller"
     );
   }
@@ -126,9 +122,7 @@ export class Account extends Entity {
   get operationTarget(): AccessManagedOperationLoader {
     return new AccessManagedOperationLoader(
       "Account",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "operationTarget"
     );
   }
@@ -306,9 +300,277 @@ export class Account extends Entity {
   get transactions(): TransactionLoader {
     return new TransactionLoader(
       "Account",
-      this.get("id")!.toString(),
+      this.get("id")!
+        .toBytes()
+        .toHexString(),
       "transactions"
     );
+  }
+}
+
+export class Selector extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Selector entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type Selector must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Selector", id.toBytes().toHexString(), this);
+    }
+  }
+
+  static loadInBlock(id: Bytes): Selector | null {
+    return changetype<Selector | null>(
+      store.get_in_block("Selector", id.toHexString())
+    );
+  }
+
+  static load(id: Bytes): Selector | null {
+    return changetype<Selector | null>(store.get("Selector", id.toHexString()));
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get functionOf(): AccessManagedFunctionLoader {
+    return new AccessManagedFunctionLoader(
+      "Selector",
+      this.get("id")!.toString(),
+      "functionOf"
+    );
+  }
+}
+
+export class Operation extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Operation entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type Operation must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Operation", id.toBytes().toHexString(), this);
+    }
+  }
+
+  static loadInBlock(id: Bytes): Operation | null {
+    return changetype<Operation | null>(
+      store.get_in_block("Operation", id.toHexString())
+    );
+  }
+
+  static load(id: Bytes): Operation | null {
+    return changetype<Operation | null>(
+      store.get("Operation", id.toHexString())
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get operationOf(): AccessManagedOperationLoader {
+    return new AccessManagedOperationLoader(
+      "Operation",
+      this.get("id")!.toString(),
+      "operationOf"
+    );
+  }
+}
+
+export class DelayedBigInt extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save DelayedBigInt entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type DelayedBigInt must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("DelayedBigInt", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): DelayedBigInt | null {
+    return changetype<DelayedBigInt | null>(
+      store.get_in_block("DelayedBigInt", id)
+    );
+  }
+
+  static load(id: string): DelayedBigInt | null {
+    return changetype<DelayedBigInt | null>(store.get("DelayedBigInt", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get oldValue(): BigInt {
+    let value = this.get("oldValue");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set oldValue(value: BigInt) {
+    this.set("oldValue", Value.fromBigInt(value));
+  }
+
+  get value(): BigInt {
+    let value = this.get("value");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set value(value: BigInt) {
+    this.set("value", Value.fromBigInt(value));
+  }
+
+  get since(): BigInt {
+    let value = this.get("since");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set since(value: BigInt) {
+    this.set("since", Value.fromBigInt(value));
+  }
+}
+
+export class Transaction extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Transaction entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type Transaction must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("Transaction", id.toBytes().toHexString(), this);
+    }
+  }
+
+  static loadInBlock(id: Bytes): Transaction | null {
+    return changetype<Transaction | null>(
+      store.get_in_block("Transaction", id.toHexString())
+    );
+  }
+
+  static load(id: Bytes): Transaction | null {
+    return changetype<Transaction | null>(
+      store.get("Transaction", id.toHexString())
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get timestamp(): BigInt {
+    let value = this.get("timestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set timestamp(value: BigInt) {
+    this.set("timestamp", Value.fromBigInt(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get sender(): Bytes {
+    let value = this.get("sender");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -371,9 +633,7 @@ export class AccessManager extends Entity {
   get roles(): AccessManagerRoleLoader {
     return new AccessManagerRoleLoader(
       "AccessManager",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "roles"
     );
   }
@@ -391,9 +651,7 @@ export class AccessManager extends Entity {
   get functions(): AccessManagedFunctionLoader {
     return new AccessManagedFunctionLoader(
       "AccessManager",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "functions"
     );
   }
@@ -401,9 +659,7 @@ export class AccessManager extends Entity {
   get operations(): AccessManagedOperationLoader {
     return new AccessManagedOperationLoader(
       "AccessManager",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "operations"
     );
   }
@@ -452,17 +708,17 @@ export class AccessManaged extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get adminDelay(): Bytes {
+  get adminDelay(): string {
     let value = this.get("adminDelay");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set adminDelay(value: Bytes) {
-    this.set("adminDelay", Value.fromBytes(value));
+  set adminDelay(value: string) {
+    this.set("adminDelay", Value.fromString(value));
   }
 
   get closed(): boolean {
@@ -506,9 +762,9 @@ export class AccessManaged extends Entity {
 }
 
 export class AccessManagerRoleMember extends Entity {
-  constructor(id: Bytes) {
+  constructor(id: string) {
     super();
-    this.set("id", Value.fromBytes(id));
+    this.set("id", Value.fromString(id));
   }
 
   save(): void {
@@ -519,36 +775,36 @@ export class AccessManagerRoleMember extends Entity {
     );
     if (id) {
       assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type AccessManagerRoleMember must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        id.kind == ValueKind.STRING,
+        `Entities of type AccessManagerRoleMember must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("AccessManagerRoleMember", id.toBytes().toHexString(), this);
+      store.set("AccessManagerRoleMember", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: Bytes): AccessManagerRoleMember | null {
+  static loadInBlock(id: string): AccessManagerRoleMember | null {
     return changetype<AccessManagerRoleMember | null>(
-      store.get_in_block("AccessManagerRoleMember", id.toHexString())
+      store.get_in_block("AccessManagerRoleMember", id)
     );
   }
 
-  static load(id: Bytes): AccessManagerRoleMember | null {
+  static load(id: string): AccessManagerRoleMember | null {
     return changetype<AccessManagerRoleMember | null>(
-      store.get("AccessManagerRoleMember", id.toHexString())
+      store.get("AccessManagerRoleMember", id)
     );
   }
 
-  get id(): Bytes {
+  get id(): string {
     let value = this.get("id");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
   }
 
   get asAccount(): Bytes {
@@ -564,17 +820,17 @@ export class AccessManagerRoleMember extends Entity {
     this.set("asAccount", Value.fromBytes(value));
   }
 
-  get role(): Bytes {
+  get role(): string {
     let value = this.get("role");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 
   get since(): BigInt {
@@ -590,76 +846,24 @@ export class AccessManagerRoleMember extends Entity {
     this.set("since", Value.fromBigInt(value));
   }
 
-  get executionDelay(): Bytes {
+  get executionDelay(): string {
     let value = this.get("executionDelay");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set executionDelay(value: Bytes) {
-    this.set("executionDelay", Value.fromBytes(value));
-  }
-}
-
-export class Selector extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Selector entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type Selector must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("Selector", id.toBytes().toHexString(), this);
-    }
-  }
-
-  static loadInBlock(id: Bytes): Selector | null {
-    return changetype<Selector | null>(
-      store.get_in_block("Selector", id.toHexString())
-    );
-  }
-
-  static load(id: Bytes): Selector | null {
-    return changetype<Selector | null>(store.get("Selector", id.toHexString()));
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get functionOf(): AccessManagedFunctionLoader {
-    return new AccessManagedFunctionLoader(
-      "Selector",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
-      "functionOf"
-    );
+  set executionDelay(value: string) {
+    this.set("executionDelay", Value.fromString(value));
   }
 }
 
 export class AccessManagedFunction extends Entity {
-  constructor(id: Bytes) {
+  constructor(id: string) {
     super();
-    this.set("id", Value.fromBytes(id));
+    this.set("id", Value.fromString(id));
   }
 
   save(): void {
@@ -670,36 +874,36 @@ export class AccessManagedFunction extends Entity {
     );
     if (id) {
       assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type AccessManagedFunction must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        id.kind == ValueKind.STRING,
+        `Entities of type AccessManagedFunction must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("AccessManagedFunction", id.toBytes().toHexString(), this);
+      store.set("AccessManagedFunction", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: Bytes): AccessManagedFunction | null {
+  static loadInBlock(id: string): AccessManagedFunction | null {
     return changetype<AccessManagedFunction | null>(
-      store.get_in_block("AccessManagedFunction", id.toHexString())
+      store.get_in_block("AccessManagedFunction", id)
     );
   }
 
-  static load(id: Bytes): AccessManagedFunction | null {
+  static load(id: string): AccessManagedFunction | null {
     return changetype<AccessManagedFunction | null>(
-      store.get("AccessManagedFunction", id.toHexString())
+      store.get("AccessManagedFunction", id)
     );
   }
 
-  get id(): Bytes {
+  get id(): string {
     let value = this.get("id");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
   }
 
   get manager(): Bytes {
@@ -741,17 +945,17 @@ export class AccessManagedFunction extends Entity {
     this.set("selector", Value.fromBytes(value));
   }
 
-  get role(): Bytes {
+  get role(): string {
     let value = this.get("role");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 
   get targetFunctionRoleUpdated(): TargetFunctionRoleUpdatedLoader {
@@ -765,147 +969,10 @@ export class AccessManagedFunction extends Entity {
   }
 }
 
-export class Operation extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Operation entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type Operation must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("Operation", id.toBytes().toHexString(), this);
-    }
-  }
-
-  static loadInBlock(id: Bytes): Operation | null {
-    return changetype<Operation | null>(
-      store.get_in_block("Operation", id.toHexString())
-    );
-  }
-
-  static load(id: Bytes): Operation | null {
-    return changetype<Operation | null>(
-      store.get("Operation", id.toHexString())
-    );
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get operationOf(): AccessManagedOperationLoader {
-    return new AccessManagedOperationLoader(
-      "Operation",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
-      "operationOf"
-    );
-  }
-}
-
-export class DelayedBigInt extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save DelayedBigInt entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type DelayedBigInt must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("DelayedBigInt", id.toBytes().toHexString(), this);
-    }
-  }
-
-  static loadInBlock(id: Bytes): DelayedBigInt | null {
-    return changetype<DelayedBigInt | null>(
-      store.get_in_block("DelayedBigInt", id.toHexString())
-    );
-  }
-
-  static load(id: Bytes): DelayedBigInt | null {
-    return changetype<DelayedBigInt | null>(
-      store.get("DelayedBigInt", id.toHexString())
-    );
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get oldValue(): BigInt {
-    let value = this.get("oldValue");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set oldValue(value: BigInt) {
-    this.set("oldValue", Value.fromBigInt(value));
-  }
-
-  get value(): BigInt {
-    let value = this.get("value");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set value(value: BigInt) {
-    this.set("value", Value.fromBigInt(value));
-  }
-
-  get since(): BigInt {
-    let value = this.get("since");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set since(value: BigInt) {
-    this.set("since", Value.fromBigInt(value));
-  }
-}
-
 export class AccessManagedOperation extends Entity {
-  constructor(id: Bytes) {
+  constructor(id: string) {
     super();
-    this.set("id", Value.fromBytes(id));
+    this.set("id", Value.fromString(id));
   }
 
   save(): void {
@@ -916,36 +983,36 @@ export class AccessManagedOperation extends Entity {
     );
     if (id) {
       assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type AccessManagedOperation must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        id.kind == ValueKind.STRING,
+        `Entities of type AccessManagedOperation must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("AccessManagedOperation", id.toBytes().toHexString(), this);
+      store.set("AccessManagedOperation", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: Bytes): AccessManagedOperation | null {
+  static loadInBlock(id: string): AccessManagedOperation | null {
     return changetype<AccessManagedOperation | null>(
-      store.get_in_block("AccessManagedOperation", id.toHexString())
+      store.get_in_block("AccessManagedOperation", id)
     );
   }
 
-  static load(id: Bytes): AccessManagedOperation | null {
+  static load(id: string): AccessManagedOperation | null {
     return changetype<AccessManagedOperation | null>(
-      store.get("AccessManagedOperation", id.toHexString())
+      store.get("AccessManagedOperation", id)
     );
   }
 
-  get id(): Bytes {
+  get id(): string {
     let value = this.get("id");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
   }
 
   get nonce(): BigInt {
@@ -985,6 +1052,19 @@ export class AccessManagedOperation extends Entity {
 
   set data(value: Bytes) {
     this.set("data", Value.fromBytes(value));
+  }
+
+  get status(): string {
+    let value = this.get("status");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set status(value: string) {
+    this.set("status", Value.fromString(value));
   }
 
   get operation(): Bytes {
@@ -1071,9 +1151,9 @@ export class AccessManagedOperation extends Entity {
 }
 
 export class AccessManagerRole extends Entity {
-  constructor(id: Bytes) {
+  constructor(id: string) {
     super();
-    this.set("id", Value.fromBytes(id));
+    this.set("id", Value.fromString(id));
   }
 
   save(): void {
@@ -1081,36 +1161,36 @@ export class AccessManagerRole extends Entity {
     assert(id != null, "Cannot save AccessManagerRole entity without an ID");
     if (id) {
       assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type AccessManagerRole must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        id.kind == ValueKind.STRING,
+        `Entities of type AccessManagerRole must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("AccessManagerRole", id.toBytes().toHexString(), this);
+      store.set("AccessManagerRole", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: Bytes): AccessManagerRole | null {
+  static loadInBlock(id: string): AccessManagerRole | null {
     return changetype<AccessManagerRole | null>(
-      store.get_in_block("AccessManagerRole", id.toHexString())
+      store.get_in_block("AccessManagerRole", id)
     );
   }
 
-  static load(id: Bytes): AccessManagerRole | null {
+  static load(id: string): AccessManagerRole | null {
     return changetype<AccessManagerRole | null>(
-      store.get("AccessManagerRole", id.toHexString())
+      store.get("AccessManagerRole", id)
     );
   }
 
-  get id(): Bytes {
+  get id(): string {
     let value = this.get("id");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
   }
 
   get roleId(): BigInt {
@@ -1156,51 +1236,49 @@ export class AccessManagerRole extends Entity {
     }
   }
 
-  get grantDelay(): Bytes {
+  get grantDelay(): string {
     let value = this.get("grantDelay");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set grantDelay(value: Bytes) {
-    this.set("grantDelay", Value.fromBytes(value));
+  set grantDelay(value: string) {
+    this.set("grantDelay", Value.fromString(value));
   }
 
-  get admin(): Bytes {
+  get admin(): string {
     let value = this.get("admin");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set admin(value: Bytes) {
-    this.set("admin", Value.fromBytes(value));
+  set admin(value: string) {
+    this.set("admin", Value.fromString(value));
   }
 
-  get guardian(): Bytes {
+  get guardian(): string {
     let value = this.get("guardian");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set guardian(value: Bytes) {
-    this.set("guardian", Value.fromBytes(value));
+  set guardian(value: string) {
+    this.set("guardian", Value.fromString(value));
   }
 
   get adminOf(): AccessManagerRoleLoader {
     return new AccessManagerRoleLoader(
       "AccessManagerRole",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "adminOf"
     );
   }
@@ -1208,9 +1286,7 @@ export class AccessManagerRole extends Entity {
   get guardianOf(): AccessManagerRoleLoader {
     return new AccessManagerRoleLoader(
       "AccessManagerRole",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "guardianOf"
     );
   }
@@ -1218,9 +1294,7 @@ export class AccessManagerRole extends Entity {
   get members(): AccessManagerRoleMemberLoader {
     return new AccessManagerRoleMemberLoader(
       "AccessManagerRole",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "members"
     );
   }
@@ -1228,9 +1302,7 @@ export class AccessManagerRole extends Entity {
   get functions(): AccessManagedFunctionLoader {
     return new AccessManagedFunctionLoader(
       "AccessManagerRole",
-      this.get("id")!
-        .toBytes()
-        .toHexString(),
+      this.get("id")!.toString(),
       "functions"
     );
   }
@@ -1369,17 +1441,17 @@ export class OperationCanceled extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -1408,8 +1480,8 @@ export class OperationCanceled extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get operation(): Bytes {
-    let value = this.get("operation");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -1417,8 +1489,21 @@ export class OperationCanceled extends Entity {
     }
   }
 
-  set operation(value: Bytes) {
-    this.set("operation", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get operation(): string {
+    let value = this.get("operation");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set operation(value: string) {
+    this.set("operation", Value.fromString(value));
   }
 
   get nonce(): BigInt {
@@ -1432,19 +1517,6 @@ export class OperationCanceled extends Entity {
 
   set nonce(value: BigInt) {
     this.set("nonce", Value.fromBigInt(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -1491,17 +1563,17 @@ export class OperationExecuted extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -1530,8 +1602,8 @@ export class OperationExecuted extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get operation(): Bytes {
-    let value = this.get("operation");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -1539,8 +1611,21 @@ export class OperationExecuted extends Entity {
     }
   }
 
-  set operation(value: Bytes) {
-    this.set("operation", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get operation(): string {
+    let value = this.get("operation");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set operation(value: string) {
+    this.set("operation", Value.fromString(value));
   }
 
   get nonce(): BigInt {
@@ -1554,19 +1639,6 @@ export class OperationExecuted extends Entity {
 
   set nonce(value: BigInt) {
     this.set("nonce", Value.fromBigInt(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -1613,17 +1685,17 @@ export class OperationScheduled extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -1652,8 +1724,8 @@ export class OperationScheduled extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get operation(): Bytes {
-    let value = this.get("operation");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -1661,8 +1733,21 @@ export class OperationScheduled extends Entity {
     }
   }
 
-  set operation(value: Bytes) {
-    this.set("operation", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get operation(): string {
+    let value = this.get("operation");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set operation(value: string) {
+    this.set("operation", Value.fromString(value));
   }
 
   get nonce(): BigInt {
@@ -1729,19 +1814,6 @@ export class OperationScheduled extends Entity {
   set data(value: Bytes) {
     this.set("data", Value.fromBytes(value));
   }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
-  }
 }
 
 export class RoleAdminChanged extends Entity {
@@ -1787,17 +1859,17 @@ export class RoleAdminChanged extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -1826,32 +1898,6 @@ export class RoleAdminChanged extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get role(): Bytes {
-    let value = this.get("role");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
-  }
-
-  get admin(): Bytes {
-    let value = this.get("admin");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set admin(value: Bytes) {
-    this.set("admin", Value.fromBytes(value));
-  }
-
   get sender(): Bytes {
     let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
@@ -1863,6 +1909,32 @@ export class RoleAdminChanged extends Entity {
 
   set sender(value: Bytes) {
     this.set("sender", Value.fromBytes(value));
+  }
+
+  get role(): string {
+    let value = this.get("role");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
+  }
+
+  get admin(): string {
+    let value = this.get("admin");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set admin(value: string) {
+    this.set("admin", Value.fromString(value));
   }
 }
 
@@ -1912,17 +1984,17 @@ export class RoleGrantDelayChanged extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -1951,8 +2023,8 @@ export class RoleGrantDelayChanged extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get role(): Bytes {
-    let value = this.get("role");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -1960,8 +2032,21 @@ export class RoleGrantDelayChanged extends Entity {
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get role(): string {
+    let value = this.get("role");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 
   get delay(): BigInt {
@@ -1988,19 +2073,6 @@ export class RoleGrantDelayChanged extends Entity {
 
   set since(value: BigInt) {
     this.set("since", Value.fromBigInt(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -2047,17 +2119,17 @@ export class RoleGranted extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2086,8 +2158,8 @@ export class RoleGranted extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get role(): Bytes {
-    let value = this.get("role");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -2095,8 +2167,21 @@ export class RoleGranted extends Entity {
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get role(): string {
+    let value = this.get("role");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 
   get account(): Bytes {
@@ -2150,19 +2235,6 @@ export class RoleGranted extends Entity {
   set newMember(value: boolean) {
     this.set("newMember", Value.fromBoolean(value));
   }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
-  }
 }
 
 export class RoleGuardianChanged extends Entity {
@@ -2208,17 +2280,17 @@ export class RoleGuardianChanged extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2247,32 +2319,6 @@ export class RoleGuardianChanged extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get role(): Bytes {
-    let value = this.get("role");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
-  }
-
-  get guardian(): Bytes {
-    let value = this.get("guardian");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set guardian(value: Bytes) {
-    this.set("guardian", Value.fromBytes(value));
-  }
-
   get sender(): Bytes {
     let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
@@ -2284,6 +2330,32 @@ export class RoleGuardianChanged extends Entity {
 
   set sender(value: Bytes) {
     this.set("sender", Value.fromBytes(value));
+  }
+
+  get role(): string {
+    let value = this.get("role");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
+  }
+
+  get guardian(): string {
+    let value = this.get("guardian");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set guardian(value: string) {
+    this.set("guardian", Value.fromString(value));
   }
 }
 
@@ -2330,17 +2402,17 @@ export class RoleLabel extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2369,8 +2441,8 @@ export class RoleLabel extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get role(): Bytes {
-    let value = this.get("role");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -2378,8 +2450,21 @@ export class RoleLabel extends Entity {
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get role(): string {
+    let value = this.get("role");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 
   get label(): string {
@@ -2393,19 +2478,6 @@ export class RoleLabel extends Entity {
 
   set label(value: string) {
     this.set("label", Value.fromString(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -2452,17 +2524,17 @@ export class RoleRevoked extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2491,8 +2563,8 @@ export class RoleRevoked extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get role(): Bytes {
-    let value = this.get("role");
+  get sender(): Bytes {
+    let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -2500,8 +2572,21 @@ export class RoleRevoked extends Entity {
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
+  get role(): string {
+    let value = this.get("role");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 
   get account(): Bytes {
@@ -2515,19 +2600,6 @@ export class RoleRevoked extends Entity {
 
   set account(value: Bytes) {
     this.set("account", Value.fromBytes(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -2577,17 +2649,17 @@ export class TargetAdminDelayUpdated extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2614,6 +2686,19 @@ export class TargetAdminDelayUpdated extends Entity {
 
   set timestamp(value: BigInt) {
     this.set("timestamp", Value.fromBigInt(value));
+  }
+
+  get sender(): Bytes {
+    let value = this.get("sender");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
   }
 
   get target(): Bytes {
@@ -2653,19 +2738,6 @@ export class TargetAdminDelayUpdated extends Entity {
 
   set since(value: BigInt) {
     this.set("since", Value.fromBigInt(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -2712,17 +2784,17 @@ export class TargetClosed extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2751,6 +2823,19 @@ export class TargetClosed extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
+  get sender(): Bytes {
+    let value = this.get("sender");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
   get target(): Bytes {
     let value = this.get("target");
     if (!value || value.kind == ValueKind.NULL) {
@@ -2775,19 +2860,6 @@ export class TargetClosed extends Entity {
 
   set closed(value: boolean) {
     this.set("closed", Value.fromBoolean(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
   }
 }
 
@@ -2837,17 +2909,17 @@ export class TargetFunctionRoleUpdated extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2876,6 +2948,19 @@ export class TargetFunctionRoleUpdated extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
+  get sender(): Bytes {
+    let value = this.get("sender");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set sender(value: Bytes) {
+    this.set("sender", Value.fromBytes(value));
+  }
+
   get target(): Bytes {
     let value = this.get("target");
     if (!value || value.kind == ValueKind.NULL) {
@@ -2889,43 +2974,30 @@ export class TargetFunctionRoleUpdated extends Entity {
     this.set("target", Value.fromBytes(value));
   }
 
-  get selector(): Bytes {
+  get selector(): string {
     let value = this.get("selector");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set selector(value: Bytes) {
-    this.set("selector", Value.fromBytes(value));
+  set selector(value: string) {
+    this.set("selector", Value.fromString(value));
   }
 
-  get role(): Bytes {
+  get role(): string {
     let value = this.get("role");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toBytes();
+      return value.toString();
     }
   }
 
-  set role(value: Bytes) {
-    this.set("role", Value.fromBytes(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
+  set role(value: string) {
+    this.set("role", Value.fromString(value));
   }
 }
 
@@ -2972,17 +3044,17 @@ export class AuthorityUpdated extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get transaction(): string {
+  get transaction(): Bytes {
     let value = this.get("transaction");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set transaction(value: string) {
-    this.set("transaction", Value.fromString(value));
+  set transaction(value: Bytes) {
+    this.set("transaction", Value.fromBytes(value));
   }
 
   get emitter(): Bytes {
@@ -2998,113 +3070,6 @@ export class AuthorityUpdated extends Entity {
     this.set("emitter", Value.fromBytes(value));
   }
 
-  get authority(): Bytes {
-    let value = this.get("authority");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set authority(value: Bytes) {
-    this.set("authority", Value.fromBytes(value));
-  }
-
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
-  get blockTimestamp(): BigInt {
-    let value = this.get("blockTimestamp");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set blockTimestamp(value: BigInt) {
-    this.set("blockTimestamp", Value.fromBigInt(value));
-  }
-
-  get transactionHash(): Bytes {
-    let value = this.get("transactionHash");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set transactionHash(value: Bytes) {
-    this.set("transactionHash", Value.fromBytes(value));
-  }
-
-  get sender(): Bytes {
-    let value = this.get("sender");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set sender(value: Bytes) {
-    this.set("sender", Value.fromBytes(value));
-  }
-}
-
-export class Transaction extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Transaction entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type Transaction must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("Transaction", id.toString(), this);
-    }
-  }
-
-  static loadInBlock(id: string): Transaction | null {
-    return changetype<Transaction | null>(
-      store.get_in_block("Transaction", id)
-    );
-  }
-
-  static load(id: string): Transaction | null {
-    return changetype<Transaction | null>(store.get("Transaction", id));
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
   get timestamp(): BigInt {
     let value = this.get("timestamp");
     if (!value || value.kind == ValueKind.NULL) {
@@ -3118,19 +3083,6 @@ export class Transaction extends Entity {
     this.set("timestamp", Value.fromBigInt(value));
   }
 
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
   get sender(): Bytes {
     let value = this.get("sender");
     if (!value || value.kind == ValueKind.NULL) {
@@ -3142,6 +3094,19 @@ export class Transaction extends Entity {
 
   set sender(value: Bytes) {
     this.set("sender", Value.fromBytes(value));
+  }
+
+  get authority(): Bytes {
+    let value = this.get("authority");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set authority(value: Bytes) {
+    this.set("authority", Value.fromBytes(value));
   }
 }
 
@@ -3379,6 +3344,24 @@ export class TransactionLoader extends Entity {
   }
 }
 
+export class AccessManagedFunctionLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): AccessManagedFunction[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<AccessManagedFunction[]>(value);
+  }
+}
+
 export class AccessManagerRoleLoader extends Entity {
   _entity: string;
   _field: string;
@@ -3412,24 +3395,6 @@ export class AccessManagedLoader extends Entity {
   load(): AccessManaged[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<AccessManaged[]>(value);
-  }
-}
-
-export class AccessManagedFunctionLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
-  }
-
-  load(): AccessManagedFunction[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<AccessManagedFunction[]>(value);
   }
 }
 
