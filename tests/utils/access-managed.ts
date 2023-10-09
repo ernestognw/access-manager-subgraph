@@ -1,10 +1,8 @@
 import { newMockEvent } from "matchstick-as";
 import { ethereum, Address } from "@graphprotocol/graph-ts";
-import { AuthorityUpdated } from "../generated/AccessManaged/AccessManaged";
+import { AuthorityUpdated } from "../../generated/AccessManaged/AccessManaged";
 
-export function createAuthorityUpdatedEvent(
-  authority: Address
-): AuthorityUpdated {
+function createAuthorityUpdatedEvent(authority: Address): AuthorityUpdated {
   let authorityUpdatedEvent = changetype<AuthorityUpdated>(newMockEvent());
 
   authorityUpdatedEvent.parameters = new Array();
@@ -15,3 +13,5 @@ export function createAuthorityUpdatedEvent(
 
   return authorityUpdatedEvent;
 }
+
+export { createAuthorityUpdatedEvent };

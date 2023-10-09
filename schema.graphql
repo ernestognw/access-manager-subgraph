@@ -1,4 +1,4 @@
-# ======= Misc =======
+# ======= Base =======
 
 type Account @entity {
   id: Bytes!
@@ -7,9 +7,11 @@ type Account @entity {
   asAccessManaged: AccessManaged
   asAccessManagerRoleMember: AccessManagerRoleMember
   # Relationships
-  membership: [AccessManagerRoleMember!]! @derivedFrom(field: "asAccount")
-  operationCaller: [AccessManagedOperation!]! @derivedFrom(field: "caller")
-  operationTarget: [AccessManagedOperation!]! @derivedFrom(field: "target")
+  memberOf: [AccessManagerRoleMember!]! @derivedFrom(field: "asAccount")
+  authorityOf: [AccessManaged!]! @derivedFrom(field: "authority")
+  targetOf: [AccessManagerTarget!]! @derivedFrom(field: "target")
+  operationCallerOf: [AccessManagedOperation!]! @derivedFrom(field: "caller")
+  operationTargetOf: [AccessManagedOperation!]! @derivedFrom(field: "target")
   # Events
   operationExecutedSender: [OperationExecuted!]! @derivedFrom(field: "sender")
   operationScheduledCaller: [OperationScheduled!]! @derivedFrom(field: "caller")
@@ -31,21 +33,46 @@ type Account @entity {
     @derivedFrom(field: "sender")
   authorityUpdated: [AuthorityUpdated!]! @derivedFrom(field: "authority")
   authorityUpdatedSender: [AuthorityUpdated!]! @derivedFrom(field: "sender")
-  # Misc
+  # Base
   events: [Event!]! @derivedFrom(field: "emitter")
   transactions: [Transaction!]! @derivedFrom(field: "sender")
+}
+
+type Role @entity(immutable: true) {
+  id: ID! # uint32
+  # Relationships
+  roleOf: [AccessManagerRole!]! @derivedFrom(field: "role")
+  # Events
+  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
+    @derivedFrom(field: "role")
+  roleAdminChangedRole: [RoleAdminChanged!]! @derivedFrom(field: "role")
+  roleAdminChangedAdmin: [RoleAdminChanged!]! @derivedFrom(field: "admin")
+  roleGrantDelayChanged: [RoleGrantDelayChanged!]! @derivedFrom(field: "role")
+  roleGranted: [RoleGranted!]! @derivedFrom(field: "role")
+  roleGuardianChangedRole: [RoleGuardianChanged!]! @derivedFrom(field: "role")
+  roleGuardianChangedGuardian: [RoleGuardianChanged!]!
+    @derivedFrom(field: "guardian")
+  roleLabel: [RoleLabel!]! @derivedFrom(field: "role")
+  roleRevoked: [RoleRevoked!]! @derivedFrom(field: "role")
 }
 
 type Selector @entity(immutable: true) {
   id: Bytes! # bytes4
   # Relationships
-  functionOf: [AccessManagedFunction]! @derivedFrom(field: "selector")
+  functionOf: [AccessManagerTargetSelector]! @derivedFrom(field: "selector")
+  # Events
+  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
+    @derivedFrom(field: "selector")
 }
 
 type Operation @entity(immutable: true) {
   id: Bytes!
   # Relationships
   operationOf: [AccessManagedOperation]! @derivedFrom(field: "operation")
+  # Events
+  operationCanceled: [OperationCanceled!]! @derivedFrom(field: "operation")
+  operationExecuted: [OperationExecuted!]! @derivedFrom(field: "operation")
+  operationScheduled: [OperationScheduled!]! @derivedFrom(field: "operation")
 }
 
 type DelayedBigInt @entity {
@@ -63,6 +90,16 @@ type Transaction @entity(immutable: true) {
   sender: Account!
 }
 
+# ======= AccessManaged =======
+
+type AccessManaged @entity(immutable: true) {
+  id: Bytes!
+  # Parsing
+  asAccount: Account!
+  # Relationships
+  authority: Account!
+}
+
 # ======= AccessManager =======
 
 type AccessManager @entity(immutable: true) {
@@ -70,24 +107,39 @@ type AccessManager @entity(immutable: true) {
   # Parsing
   asAccount: Account!
   # Relationships
+  targets: [AccessManagerTarget!]! @derivedFrom(field: "manager")
   roles: [AccessManagerRole!]! @derivedFrom(field: "manager")
-  managed: [AccessManaged!]! @derivedFrom(field: "manager")
-  functions: [AccessManagedFunction!]! @derivedFrom(field: "manager")
+  members: [AccessManagerRoleMember!]! @derivedFrom(field: "manager")
+  selectors: [AccessManagerTargetSelector!]! @derivedFrom(field: "manager")
   operations: [AccessManagedOperation!]! @derivedFrom(field: "manager")
 }
 
-type AccessManaged @entity {
-  id: Bytes!
+type AccessManagerTarget @entity(immutable: true) {
+  id: ID!
+  manager: AccessManager!
+  target: Account!
   adminDelay: DelayedBigInt! # uint32
   closed: Boolean! # bool
-  # Parsing
-  asAccount: Account!
-  # Relationships
+}
+
+type AccessManagerRole @entity {
+  id: ID!
+  role: Role!
   manager: AccessManager!
+  label: String
+  grantDelay: DelayedBigInt! # uint32
+  # Relationships
+  admin: AccessManagerRole!
+  guardian: AccessManagerRole!
+  adminOf: [AccessManagerRole!]! @derivedFrom(field: "admin")
+  guardianOf: [AccessManagerRole!]! @derivedFrom(field: "guardian")
+  members: [AccessManagerRoleMember!]! @derivedFrom(field: "role")
+  selectors: [AccessManagerTargetSelector!]! @derivedFrom(field: "role")
 }
 
 type AccessManagerRoleMember @entity(immutable: true) {
   id: ID!
+  manager: AccessManager!
   # Parsing
   asAccount: Account!
   # Relationships
@@ -96,16 +148,13 @@ type AccessManagerRoleMember @entity(immutable: true) {
   executionDelay: DelayedBigInt! # uint32
 }
 
-type AccessManagedFunction @entity {
+type AccessManagerTargetSelector @entity {
   id: ID!
   manager: AccessManager!
   # Relationships
-  target: Account!
+  target: AccessManagerTarget!
   selector: Selector!
   role: AccessManagerRole!
-  # Events
-  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
-    @derivedFrom(field: "selector")
 }
 
 enum AccessManagedOperationStatus {
@@ -125,37 +174,6 @@ type AccessManagedOperation @entity {
   manager: AccessManager!
   caller: Account!
   target: Account!
-  # Events
-  operationCanceled: [OperationCanceled!]! @derivedFrom(field: "operation")
-  operationExecuted: [OperationExecuted!]! @derivedFrom(field: "operation")
-  operationScheduled: [OperationScheduled!]! @derivedFrom(field: "operation")
-}
-
-type AccessManagerRole @entity {
-  id: ID!
-  roleId: BigInt! # uint32
-  manager: AccessManager!
-  label: String
-  grantDelay: DelayedBigInt! # uint32
-  # Relationships
-  admin: AccessManagerRole!
-  guardian: AccessManagerRole!
-  adminOf: [AccessManagerRole!]! @derivedFrom(field: "admin")
-  guardianOf: [AccessManagerRole!]! @derivedFrom(field: "guardian")
-  members: [AccessManagerRoleMember!]! @derivedFrom(field: "role")
-  functions: [AccessManagedFunction!]! @derivedFrom(field: "role")
-  # Events
-  roleAdminChangedRole: [RoleAdminChanged!]! @derivedFrom(field: "role")
-  roleAdminChangedAdmin: [RoleAdminChanged!]! @derivedFrom(field: "admin")
-  roleGrantDelayChanged: [RoleGrantDelayChanged!]! @derivedFrom(field: "role")
-  roleGranted: [RoleGranted!]! @derivedFrom(field: "role")
-  roleGuardianChangedRole: [RoleGuardianChanged!]! @derivedFrom(field: "role")
-  roleGuardianChangedGuardian: [RoleGuardianChanged!]!
-    @derivedFrom(field: "guardian")
-  roleLabel: [RoleLabel!]! @derivedFrom(field: "role")
-  roleRevoked: [RoleRevoked!]! @derivedFrom(field: "role")
-  targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
-    @derivedFrom(field: "role")
 }
 
 # ======= Events =======
@@ -174,7 +192,7 @@ type OperationCanceled implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  operation: AccessManagedOperation!
+  operation: Operation!
   nonce: BigInt! # uint32
 }
 
@@ -184,7 +202,7 @@ type OperationExecuted implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  operation: AccessManagedOperation!
+  operation: Operation!
   nonce: BigInt! # uint32
 }
 
@@ -194,7 +212,7 @@ type OperationScheduled implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  operation: AccessManagedOperation!
+  operation: Operation!
   nonce: BigInt! # uint32
   schedule: BigInt! # uint48
   caller: Account!
@@ -208,8 +226,8 @@ type RoleAdminChanged implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  role: AccessManagerRole!
-  admin: AccessManagerRole!
+  role: Role!
+  admin: Role!
 }
 
 type RoleGrantDelayChanged implements Event @entity(immutable: true) {
@@ -218,7 +236,7 @@ type RoleGrantDelayChanged implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  role: AccessManagerRole!
+  role: Role!
   delay: BigInt! # uint32
   since: BigInt! # uint48
 }
@@ -229,7 +247,7 @@ type RoleGranted implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  role: AccessManagerRole!
+  role: Role!
   account: Account!
   delay: BigInt! # uint32
   since: BigInt! # uint48
@@ -242,8 +260,8 @@ type RoleGuardianChanged implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  role: AccessManagerRole!
-  guardian: AccessManagerRole!
+  role: Role!
+  guardian: Role!
 }
 
 type RoleLabel implements Event @entity(immutable: true) {
@@ -252,7 +270,7 @@ type RoleLabel implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  role: AccessManagerRole!
+  role: Role!
   label: String! # string
 }
 
@@ -262,7 +280,7 @@ type RoleRevoked implements Event @entity(immutable: true) {
   emitter: Account!
   timestamp: BigInt!
   sender: Account!
-  role: AccessManagerRole!
+  role: Role!
   account: Account!
 }
 
@@ -294,8 +312,8 @@ type TargetFunctionRoleUpdated implements Event @entity(immutable: true) {
   timestamp: BigInt!
   sender: Account!
   target: Account!
-  selector: AccessManagedFunction!
-  role: AccessManagerRole!
+  selector: Selector!
+  role: Role!
 }
 
 type AuthorityUpdated implements Event @entity(immutable: true) {
