@@ -137,7 +137,7 @@ type AccessManagerRole @entity {
   selectors: [AccessManagerTargetSelector!]! @derivedFrom(field: "role")
 }
 
-type AccessManagerRoleMember @entity(immutable: true) {
+type AccessManagerRoleMember @entity {
   id: ID!
   manager: AccessManager!
   # Parsing
