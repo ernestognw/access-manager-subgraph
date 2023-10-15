@@ -5,11 +5,10 @@ type Account @entity {
   # Parsing
   asAccessManager: AccessManager
   asAccessManaged: AccessManaged
-  asAccessManagerRoleMember: AccessManagerRoleMember
   # Relationships
-  memberOf: [AccessManagerRoleMember!]! @derivedFrom(field: "asAccount")
+  membership: [AccessManagerRoleMember!]! @derivedFrom(field: "asAccount")
+  targettedBy: [AccessManagerTarget!]! @derivedFrom(field: "asAccount")
   authorityOf: [AccessManaged!]! @derivedFrom(field: "authority")
-  targetOf: [AccessManagerTarget!]! @derivedFrom(field: "target")
   operationCallerOf: [AccessManagedOperation!]! @derivedFrom(field: "caller")
   operationTargetOf: [AccessManagedOperation!]! @derivedFrom(field: "target")
   # Events
@@ -41,7 +40,7 @@ type Account @entity {
 type Role @entity(immutable: true) {
   id: ID! # uint32
   # Relationships
-  roleOf: [AccessManagerRole!]! @derivedFrom(field: "role")
+  roleOf: [AccessManagerRole!]! @derivedFrom(field: "asRole")
   # Events
   targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
     @derivedFrom(field: "role")
@@ -59,7 +58,7 @@ type Role @entity(immutable: true) {
 type Selector @entity(immutable: true) {
   id: Bytes! # bytes4
   # Relationships
-  functionOf: [AccessManagerTargetSelector]! @derivedFrom(field: "selector")
+  functionOf: [AccessManagerTargetFunction]! @derivedFrom(field: "asSelector")
   # Events
   targetFunctionRoleUpdated: [TargetFunctionRoleUpdated!]!
     @derivedFrom(field: "selector")
@@ -68,7 +67,7 @@ type Selector @entity(immutable: true) {
 type Operation @entity(immutable: true) {
   id: Bytes!
   # Relationships
-  operationOf: [AccessManagedOperation]! @derivedFrom(field: "operation")
+  operationOf: [AccessManagedOperation]! @derivedFrom(field: "asOperation")
   # Events
   operationCanceled: [OperationCanceled!]! @derivedFrom(field: "operation")
   operationExecuted: [OperationExecuted!]! @derivedFrom(field: "operation")
@@ -94,9 +93,8 @@ type Transaction @entity(immutable: true) {
 
 type AccessManaged @entity(immutable: true) {
   id: Bytes!
-  # Parsing
-  asAccount: Account!
   # Relationships
+  asAccount: Account!
   authority: Account!
 }
 
@@ -104,27 +102,27 @@ type AccessManaged @entity(immutable: true) {
 
 type AccessManager @entity(immutable: true) {
   id: Bytes!
-  # Parsing
-  asAccount: Account!
   # Relationships
+  asAccount: Account!
   targets: [AccessManagerTarget!]! @derivedFrom(field: "manager")
   roles: [AccessManagerRole!]! @derivedFrom(field: "manager")
   members: [AccessManagerRoleMember!]! @derivedFrom(field: "manager")
-  selectors: [AccessManagerTargetSelector!]! @derivedFrom(field: "manager")
+  functions: [AccessManagerTargetFunction!]! @derivedFrom(field: "manager")
   operations: [AccessManagedOperation!]! @derivedFrom(field: "manager")
 }
 
 type AccessManagerTarget @entity(immutable: true) {
   id: ID!
+  asAccount: Account!
   manager: AccessManager!
-  target: Account!
   adminDelay: DelayedBigInt! # uint32
   closed: Boolean! # bool
+  functions: [AccessManagerTargetFunction!]! @derivedFrom(field: "target")
 }
 
 type AccessManagerRole @entity {
   id: ID!
-  role: Role!
+  asRole: Role!
   manager: AccessManager!
   label: String
   grantDelay: DelayedBigInt! # uint32
@@ -134,26 +132,25 @@ type AccessManagerRole @entity {
   adminOf: [AccessManagerRole!]! @derivedFrom(field: "admin")
   guardianOf: [AccessManagerRole!]! @derivedFrom(field: "guardian")
   members: [AccessManagerRoleMember!]! @derivedFrom(field: "role")
-  selectors: [AccessManagerTargetSelector!]! @derivedFrom(field: "role")
+  functions: [AccessManagerTargetFunction!]! @derivedFrom(field: "role")
 }
 
 type AccessManagerRoleMember @entity {
   id: ID!
-  manager: AccessManager!
-  # Parsing
-  asAccount: Account!
   # Relationships
+  asAccount: Account!
+  manager: AccessManager!
   role: AccessManagerRole!
   since: BigInt! # uint48
   executionDelay: DelayedBigInt! # uint32
 }
 
-type AccessManagerTargetSelector @entity {
+type AccessManagerTargetFunction @entity {
   id: ID!
-  manager: AccessManager!
   # Relationships
+  asSelector: Selector!
+  manager: AccessManager!
   target: AccessManagerTarget!
-  selector: Selector!
   role: AccessManagerRole!
 }
 
@@ -170,7 +167,7 @@ type AccessManagedOperation @entity {
   data: Bytes! # bytes
   status: AccessManagedOperationStatus!
   # Relationships
-  operation: Operation!
+  asOperation: Operation!
   manager: AccessManager!
   caller: Account!
   target: Account!

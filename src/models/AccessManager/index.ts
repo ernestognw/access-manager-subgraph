@@ -4,7 +4,7 @@ import {
   AccessManagerTarget as AccessManagerTargetSchema,
   AccessManagerRoleMember as AccessManagerRoleMemberSchema,
   AccessManagerRole as AccessManagerRoleSchema,
-  AccessManagerTargetSelector as AccessManagerTargetSelectorSchema,
+  AccessManagerTargetFunction as AccessManagerTargetFunctionSchema,
   AccessManagedOperation as AccessManagedOperationSchema,
 } from "../../../generated/schema";
 import {
@@ -64,7 +64,7 @@ class AccessManagerTarget extends AccessManagerTargetSchema {
     if (accessManagerTarget == null) {
       accessManagerTarget = new AccessManagerTarget(id);
       accessManagerTarget.manager = accessManager.id;
-      accessManagerTarget.target = target.id;
+      accessManagerTarget.asAccount = target.id;
       accessManagerTarget.adminDelay = DelayedBigInt.fetch(
         DelayType.ADMIN,
         id
@@ -91,7 +91,7 @@ class AccessManagerRole extends AccessManagerRoleSchema {
 
     if (accessManagerRole == null) {
       accessManagerRole = new AccessManagerRole(id);
-      accessManagerRole.role = role.id;
+      accessManagerRole.asRole = role.id;
       accessManagerRole.manager = accessManager.id;
       accessManagerRole.grantDelay = DelayedBigInt.fetch(
         DelayType.EXECUTION,
@@ -135,7 +135,6 @@ class AccessManagerRoleMember extends AccessManagerRoleMemberSchema {
       ).id; // Needs override
       accessManagedRoleMember.save();
 
-      member.asAccessManagerRoleMember = accessManagedRoleMember.id;
       member.save();
     }
 
@@ -143,7 +142,7 @@ class AccessManagerRoleMember extends AccessManagerRoleMemberSchema {
   }
 }
 
-class AccessManagerTargetSelector extends AccessManagerTargetSelectorSchema {
+class AccessManagerTargetFunction extends AccessManagerTargetFunctionSchema {
   static id(
     accessManagedTarget: AccessManagerTarget,
     selector: Selector
@@ -154,27 +153,27 @@ class AccessManagerTargetSelector extends AccessManagerTargetSelectorSchema {
   static fetch(
     accessManagedTarget: AccessManagerTarget,
     selector: Selector
-  ): AccessManagerTargetSelector {
+  ): AccessManagerTargetFunction {
     const id = this.id(accessManagedTarget, selector);
-    let accessManagerTargetSelector = AccessManagerTargetSelector.load(id);
+    let accessManagerTargetFunction = AccessManagerTargetFunction.load(id);
 
-    if (accessManagerTargetSelector == null) {
-      accessManagerTargetSelector = new AccessManagerTargetSelector(id);
-      accessManagerTargetSelector.manager = accessManagedTarget.manager;
-      accessManagerTargetSelector.target = accessManagedTarget.id;
-      accessManagerTargetSelector.selector = selector.id;
+    if (accessManagerTargetFunction == null) {
+      accessManagerTargetFunction = new AccessManagerTargetFunction(id);
+      accessManagerTargetFunction.manager = accessManagedTarget.manager;
+      accessManagerTargetFunction.target = accessManagedTarget.id;
+      accessManagerTargetFunction.asSelector = selector.id;
       const accessManagerAccount = Account.fetch(
         Address.fromBytes(accessManagedTarget.manager)
       );
       const adminRole = Role.fetch(ADMIN_ROLE);
-      accessManagerTargetSelector.role = AccessManagerRole.fetch(
+      accessManagerTargetFunction.role = AccessManagerRole.fetch(
         AccessManager.fetch(accessManagerAccount),
         adminRole
       ).id;
-      accessManagerTargetSelector.save();
+      accessManagerTargetFunction.save();
     }
 
-    return changetype<AccessManagerTargetSelector>(accessManagerTargetSelector);
+    return changetype<AccessManagerTargetFunction>(accessManagerTargetFunction);
   }
 }
 
@@ -206,7 +205,7 @@ class AccessManagedOperation extends AccessManagedOperationSchema {
       accessManagedOperation.schedule = BigInt.fromString("0"); // Needs override
       accessManagedOperation.data = Bytes.fromI32(0); // Needs override
       accessManagedOperation.status = AccessManagerOperationStatus.SCHEDULED.toString();
-      accessManagedOperation.operation = operation.id;
+      accessManagedOperation.asOperation = operation.id;
       accessManagedOperation.manager = accessManager.id;
       accessManagedOperation.caller = Account.fetch(Address.zero()).id; // Needs override
       accessManagedOperation.target = Account.fetch(Address.zero()).id; // Needs override
@@ -223,6 +222,6 @@ export {
   AccessManagerTarget,
   AccessManagerRole,
   AccessManagerRoleMember,
-  AccessManagerTargetSelector,
+  AccessManagerTargetFunction,
   AccessManagedOperation,
 };

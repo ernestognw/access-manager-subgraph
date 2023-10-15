@@ -19,7 +19,7 @@ import {
   AccessManagerTarget,
   AccessManagerRole,
   AccessManagerRoleMember,
-  AccessManagerTargetSelector,
+  AccessManagerTargetFunction,
   AccessManagedOperation,
 } from "../models/AccessManager";
 import {
@@ -242,7 +242,7 @@ function handleTargetFunctionRoleUpdated(
   const target = Account.fetch(event.params.target);
   const accessManagerTarget = AccessManagerTarget.fetch(accessManager, target);
   const selector = Selector.fetch(event.params.selector);
-  const accessManagedTargetSelector = AccessManagerTargetSelector.fetch(
+  const accessManagedTargetSelector = AccessManagerTargetFunction.fetch(
     accessManagerTarget,
     selector
   );
