@@ -28,3 +28,11 @@ Deploy the subgraph with:
 ```bash
 yarn deploy
 ```
+
+### Live deployments
+
+| Network | Queries (HTTP)                                                                                                                                                 |
+|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Mainnet | [https://api.thegraph.com/subgraphs/name/ernestognw/access-manager-mainnet](https://api.thegraph.com/subgraphs/name/ernestognw/access-manager-mainnet)         |
+| Sepolia | [https://api.thegraph.com/subgraphs/name/ernestognw/access-manager-sepolia](https://api.thegraph.com/subgraphs/name/ernestognw/access-manager-sepolia)         |
+| Goerli | [https://api.thegraph.com/subgraphs/name/ernestognw/access-manager-goerli](https://api.thegraph.com/subgraphs/name/ernestognw/access-manager-goerli)            |
