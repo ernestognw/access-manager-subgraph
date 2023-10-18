@@ -4,10 +4,12 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --product hosted-service ernestognw/access-manager-goerli",
-    "create-local": "graph create --node http://localhost:8020/ access-manager-goerli",
-    "remove-local": "graph remove --node http://localhost:8020/ access-manager-goerli",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 access-manager-goerli",
+    "deploy:mainnet": "graph deploy --product hosted-service --network mainnet ernestognw/access-manager-mainnet",
+    "deploy:sepolia": "graph deploy --product hosted-service --network sepolia ernestognw/access-manager-sepolia",
+    "deploy:goerli": "graph deploy --product hosted-service --network goerli ernestognw/access-manager-goerli",
+    "create-local": "graph create --node http://localhost:8020/ access-manager",
+    "remove-local": "graph remove --node http://localhost:8020/ access-manager",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 access-manager",
     "test": "graph test"
   },
   "dependencies": {

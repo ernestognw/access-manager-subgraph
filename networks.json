@@ -1,10 +1,26 @@
 {
   "goerli": {
     "AccessManager": {
-      "startBlock": 9816668
+      "startBlock": 9811500
     },
     "AccessManaged": {
-      "startBlock": 9816668
+      "startBlock": 9811500
+    }
+  },
+  "sepolia": {
+    "AccessManager": {
+      "startBlock": 4425112
+    },
+    "AccessManaged": {
+      "startBlock": 4425112
+    }
+  },
+  "mainnet": {
+    "AccessManager": {
+      "startBlock": 18279121
+    },
+    "AccessManaged": {
+      "startBlock": 18279121
     }
   }
 }

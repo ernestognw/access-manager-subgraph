@@ -4,10 +4,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: AccessManager
-    network: goerli
+    network: mainnet
     source:
       abi: AccessManager
-      startBlock: 9816668
+      startBlock: 18279121
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -56,10 +56,10 @@ dataSources:
       file: AccessManager/AccessManager.wasm
   - kind: ethereum
     name: AccessManaged
-    network: goerli
+    network: mainnet
     source:
       abi: AccessManaged
-      startBlock: 9816668
+      startBlock: 18279121
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

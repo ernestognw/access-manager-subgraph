@@ -4,10 +4,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: AccessManager
-    network: goerli
+    network: mainnet
     source:
       abi: AccessManager
-      startBlock: 9816668 # First AccessManager
+      startBlock: 18279121
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -33,7 +33,8 @@ dataSources:
           handler: handleOperationCanceled
         - event: OperationExecuted(indexed bytes32,indexed uint32)
           handler: handleOperationExecuted
-        - event: OperationScheduled(indexed bytes32,indexed uint32,uint48,address,address,bytes)
+        - event: OperationScheduled(indexed bytes32,indexed
+            uint32,uint48,address,address,bytes)
           handler: handleOperationScheduled
         - event: RoleAdminChanged(indexed uint64,indexed uint64)
           handler: handleRoleAdminChanged
@@ -56,10 +57,10 @@ dataSources:
       file: ./src/datasources/AccessManager.ts
   - kind: ethereum
     name: AccessManaged
-    network: goerli
+    network: mainnet
     source:
       abi: AccessManaged
-      startBlock: 9816668 # First AccessManaged
+      startBlock: 18279121
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
