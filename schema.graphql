@@ -91,7 +91,7 @@ type Transaction @entity(immutable: true) {
 
 # ======= AccessManaged =======
 
-type AccessManaged @entity(immutable: true) {
+type AccessManaged @entity {
   id: Bytes!
   # Relationships
   asAccount: Account!
@@ -111,7 +111,7 @@ type AccessManager @entity(immutable: true) {
   operations: [AccessManagedOperation!]! @derivedFrom(field: "manager")
 }
 
-type AccessManagerTarget @entity(immutable: true) {
+type AccessManagerTarget @entity {
   id: ID!
   asAccount: Account!
   manager: AccessManager!

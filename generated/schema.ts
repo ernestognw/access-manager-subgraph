@@ -1014,6 +1014,14 @@ export class AccessManagerTarget extends Entity {
   set closed(value: boolean) {
     this.set("closed", Value.fromBoolean(value));
   }
+
+  get functions(): AccessManagerTargetFunctionLoader {
+    return new AccessManagerTargetFunctionLoader(
+      "AccessManagerTarget",
+      this.get("id")!.toString(),
+      "functions"
+    );
+  }
 }
 
 export class AccessManagerRole extends Entity {

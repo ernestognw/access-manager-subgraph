@@ -4,10 +4,10 @@ schema:
 dataSources:
   - kind: ethereum
     name: AccessManager
-    network: mainnet
+    network: sepolia
     source:
       abi: AccessManager
-      startBlock: 18279121
+      startBlock: 4425112
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -56,10 +56,10 @@ dataSources:
       file: AccessManager/AccessManager.wasm
   - kind: ethereum
     name: AccessManaged
-    network: mainnet
+    network: sepolia
     source:
       abi: AccessManaged
-      startBlock: 18279121
+      startBlock: 4425112
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
