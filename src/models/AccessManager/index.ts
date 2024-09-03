@@ -16,12 +16,6 @@ import {
   Operation,
 } from "../base";
 
-enum AccessManagerOperationStatus {
-  SCHEDULED,
-  EXECUTED,
-  CANCELED,
-}
-
 const ADMIN_ROLE = BigInt.fromI32(0);
 
 class AccessManager extends AccessManagerSchema {
@@ -204,7 +198,7 @@ class AccessManagedOperation extends AccessManagedOperationSchema {
       accessManagedOperation.nonce = nonce;
       accessManagedOperation.schedule = BigInt.fromString("0"); // Needs override
       accessManagedOperation.data = Bytes.fromI32(0); // Needs override
-      accessManagedOperation.status = AccessManagerOperationStatus.SCHEDULED.toString();
+      accessManagedOperation.status = "SCHEDULED";
       accessManagedOperation.asOperation = operation.id;
       accessManagedOperation.manager = accessManager.id;
       accessManagedOperation.caller = Account.fetch(Address.zero()).id; // Needs override
@@ -217,7 +211,6 @@ class AccessManagedOperation extends AccessManagedOperationSchema {
 }
 
 export {
-  AccessManagerOperationStatus,
   AccessManager,
   AccessManagerTarget,
   AccessManagerRole,

@@ -14,7 +14,6 @@ import {
   TargetFunctionRoleUpdated as TargetFunctionRoleUpdatedEvent,
 } from "../../generated/AccessManager/AccessManager";
 import {
-  AccessManagerOperationStatus,
   AccessManager,
   AccessManagerTarget,
   AccessManagerRole,
@@ -57,7 +56,7 @@ function handleOperationCanceled(event: OperationCanceledEvent): void {
     operation,
     operationCanceled.nonce
   );
-  accessManagedOperation.status = AccessManagerOperationStatus.CANCELED.toString();
+  accessManagedOperation.status = "CANCELED";
   accessManagedOperation.save();
 }
 
@@ -74,7 +73,7 @@ function handleOperationExecuted(event: OperationExecutedEvent): void {
     operation,
     operationExecuted.nonce
   );
-  accessManagedOperation.status = AccessManagerOperationStatus.EXECUTED.toString();
+  accessManagedOperation.status = "EXECUTED";
   accessManagedOperation.save();
 }
 
